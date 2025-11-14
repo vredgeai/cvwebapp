@@ -98,7 +98,7 @@ function App() {
         <div className="container mt-5">
             <div className="text-center mb-4">
                 <h1>CV WebApp</h1>
-                <p className="lead">Upload a video, pause it at the desired frame, and then describe the frame with a prompt.</p>
+                <p className="lead">Upload a video, pause it at the desired frame, and then analyze the frame with a prompt.</p>
             </div>
 
             <div className="card mb-4">
