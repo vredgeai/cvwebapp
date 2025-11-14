@@ -95,51 +95,57 @@ function App() {
     };
 
     return (
-        <div className="container mt-5">
-            <div className="text-center mb-4">
+        <div className="container-fluid vh-100 d-flex flex-column p-3">
+            <div className="text-center mb-3">
                 <h1>CV WebApp</h1>
-                <p className="lead">Upload a video, pause it at the desired frame, and then analyze the frame with a prompt.</p>
             </div>
-
-            <div className="card mb-4">
-                <div className="card-body">
-                    <h5 className="card-title">1. Upload Video</h5>
-                    <div className="mb-3">
-                        <input className="form-control" type="file" accept="video/*" onChange={handleVideoChange} />
-                    </div>
-                    {videoFile && (
-                        <VideoPlayer ref={videoRef} videoFile={videoFile} />
-                    )}
-                </div>
-            </div>
-
-            <div className="card mb-4">
-                <div className="card-body">
-                    <h5 className="card-title">2. Enter Prompt</h5>
-                    <textarea
-                        className="form-control"
-                        rows={3}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="e.g., 'Describe this frame in detail.'"
-                    ></textarea>
-                </div>
-            </div>
-
-            <div className="text-center">
-                <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={loading || !videoFile}>
-                    {loading ? 'Running...' : 'Run Analysis on Paused Frame'}
-                </button>
-            </div>
-
-            {result && (
-                <div className="card mt-4">
-                    <div className="card-body">
-                        <h5 className="card-title">Result</h5>
-                        <pre>{result}</pre>
+            <div className="row flex-grow-1 g-3">
+                {/* Left Column: Video */}
+                <div className="col-md-6 d-flex flex-column">
+                    <div className="card flex-grow-1">
+                        <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">1. Video</h5>
+                            <div className="mb-3">
+                                <input className="form-control" type="file" accept="video/*" onChange={handleVideoChange} />
+                            </div>
+                            <div className="flex-grow-1" style={{ minHeight: 0 }}>
+                                {videoFile && (
+                                    <VideoPlayer ref={videoRef} videoFile={videoFile} />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            )}
+
+                {/* Right Column: Prompt and Result */}
+                <div className="col-md-6 d-flex flex-column g-3">
+                    {/* Top Right: Prompt */}
+                    <div className="card" style={{ flex: '0 1 40%' }}>
+                        <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">2. Prompt</h5>
+                            <textarea
+                                className="form-control flex-grow-1"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                placeholder="e.g., 'Describe this frame in detail.'"
+                            ></textarea>
+                            <button className="btn btn-primary mt-3" onClick={handleSubmit} disabled={loading || !videoFile}>
+                                {loading ? 'Running...' : 'Run Analysis on Paused Frame'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Bottom Right: Result */}
+                    <div className="card mt-3" style={{ flex: '1 1 60%' }}>
+                        <div className="card-body d-flex flex-column">
+                            <h5 className="card-title">Result</h5>
+                            <pre className="flex-grow-1 bg-light p-2" style={{ minHeight: 0, overflowY: 'auto' }}>
+                                {result}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
