@@ -1,13 +1,36 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import VideoPlayer from './components/VideoPlayer';
 
 function App() {
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [prompt, setPrompt] = useState('');
+    const [models, setModels] = useState<string[]>([]);
+    const [selectedModel, setSelectedModel] = useState('');
     const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        const fetchModels = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/models');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch models');
+                }
+                const data = await response.json();
+                setModels(data);
+                if (data.length > 0) {
+                    setSelectedModel(data[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching models:', error);
+            }
+        };
+
+        fetchModels();
+    }, []);
+
 
     const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -58,6 +81,7 @@ function App() {
             const formData = new FormData();
             formData.append('image', frame);
             formData.append('prompt', prompt);
+            formData.append('model', selectedModel);
 
             console.log('Sending request to backend...');
             const response = await fetch('http://localhost:3001/api/run-ollama', {
@@ -123,6 +147,19 @@ function App() {
                     <div className="card" style={{ flex: '0 1 40%' }}>
                         <div className="card-body d-flex flex-column">
                             <h5 className="card-title">2. Prompt</h5>
+                            <div className="mb-3">
+                                <label htmlFor="model-select" className="form-label">Model</label>
+                                <select
+                                    id="model-select"
+                                    className="form-select"
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                >
+                                    {models.map(model => (
+                                        <option key={model} value={model}>{model}</option>
+                                    ))}
+                                </select>
+                            </div>
                             <textarea
                                 className="form-control flex-grow-1"
                                 value={prompt}

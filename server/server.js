@@ -20,6 +20,19 @@ if (!fs.existsSync(uploadsDir)) {
 const storage = multer.memoryStorage(); // Use memory storage to get a buffer
 const upload = multer({ storage: storage });
 
+const { exec } = require('child_process');
+
+app.get('/api/models', async (req, res) => {
+    exec('ollama list', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return res.status(500).send('Failed to get models from Ollama.');
+        }
+        const models = stdout.split('\n').slice(1, -1).map(line => line.split(/\s+/)[0]);
+        res.json(models);
+    });
+});
+
 app.post('/api/run-ollama', upload.single('image'), async (req, res) => {
     console.log('[/api/run-ollama] endpoint hit');
     
@@ -28,15 +41,15 @@ app.post('/api/run-ollama', upload.single('image'), async (req, res) => {
         return res.status(400).send('Image file and prompt are required.');
     }
 
-    const { prompt } = req.body;
+    const { prompt, model } = req.body;
     const imageBuffer = req.file.buffer;
     const imageBase64 = imageBuffer.toString('base64');
 
-    console.log('[/api/run-ollama] Forwarding request to Ollama REST API...');
+    console.log(`[/api/run-ollama] Forwarding request to Ollama REST API with model ${model}...`);
 
     try {
         const ollamaResponse = await axios.post('http://localhost:11434/api/generate', {
-            model: 'qwen3-vl:8b',
+            model: model || 'qwen3-vl:8b',
             prompt: prompt,
             images: [imageBase64],
             stream: true, // We want a streaming response
