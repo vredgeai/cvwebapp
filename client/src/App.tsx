@@ -176,9 +176,9 @@ function App() {
                     <div className="card mt-3" style={{ flex: '1 1 60%' }}>
                         <div className="card-body d-flex flex-column">
                             <h5 className="card-title">Result</h5>
-                            <pre className="flex-grow-1 bg-light p-2" style={{ minHeight: 0, overflowY: 'auto' }}>
+                            <div className="flex-grow-1 bg-light p-2" style={{ minHeight: 0, overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                 {result}
-                            </pre>
+                            </div>
                         </div>
                     </div>
                 </div>
