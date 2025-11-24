@@ -60,6 +60,8 @@ app.post('/api/run-ollama', upload.single('image'), async (req, res) => {
         res.setHeader('Content-Type', 'text/plain; charset=utf-f');
         res.setHeader('Transfer-Encoding', 'chunked');
 
+        const startTime = performance.now();
+
         ollamaResponse.data.on('data', (chunk) => {
             try {
                 const parsedChunk = JSON.parse(chunk.toString());
@@ -67,6 +69,9 @@ app.post('/api/run-ollama', upload.single('image'), async (req, res) => {
                     res.write(parsedChunk.response);
                 }
                 if (parsedChunk.done) {
+                    const endTime = performance.now();
+                    const latency = (endTime - startTime) / 1000;
+                    res.write(JSON.stringify({ latency: latency.toFixed(2) }));
                     res.end();
                 }
             } catch (e) {

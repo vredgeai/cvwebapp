@@ -9,6 +9,7 @@ function App() {
     const [selectedModel, setSelectedModel] = useState('');
     const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
+    const [latency, setLatency] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -72,6 +73,7 @@ function App() {
 
         setLoading(true);
         setResult('');
+        setLatency(null);
 
         try {
             console.log('Capturing frame...');
@@ -99,14 +101,28 @@ function App() {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
+            let fullResponse = '';
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
                     break;
                 }
-                const chunk = decoder.decode(value);
-                setResult((prevResult) => prevResult + chunk);
+                fullResponse += decoder.decode(value);
+            }
+
+            try {
+                const potentialJson = fullResponse.substring(fullResponse.lastIndexOf('{'));
+                const parsed = JSON.parse(potentialJson);
+                if (parsed.latency) {
+                    setLatency(parsed.latency);
+                    const responseText = fullResponse.substring(0, fullResponse.lastIndexOf('{'));
+                    setResult(responseText);
+                } else {
+                    setResult(fullResponse);
+                }
+            } catch (e) {
+                setResult(fullResponse);
             }
 
         } catch (error) {
@@ -175,8 +191,15 @@ function App() {
                     {/* Bottom Right: Result */}
                     <div className="card mt-3" style={{ flex: '1 1 60%' }}>
                         <div className="card-body d-flex flex-column">
-                            <h5 className="card-title">Result</h5>
-                            <div className="flex-grow-1 bg-light p-2" style={{ minHeight: 0, overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h5 className="card-title mb-0">Result</h5>
+                                {latency && (
+                                    <span className="badge bg-secondary">
+                                        Latency: {latency}s
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex-grow-1 bg-light p-2 mt-2" style={{ minHeight: 0, overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                 {result}
                             </div>
                         </div>
