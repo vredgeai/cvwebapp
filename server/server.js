@@ -33,25 +33,24 @@ app.get('/api/models', async (req, res) => {
     });
 });
 
-app.post('/api/run-ollama', upload.single('image'), async (req, res) => {
+app.post('/api/run-ollama', upload.array('images'), async (req, res) => {
     console.log('[/api/run-ollama] endpoint hit');
-    
-    if (!req.file || !req.body.prompt) {
-        console.error('[/api/run-ollama] Image file and prompt are required.');
-        return res.status(400).send('Image file and prompt are required.');
+
+    if (!req.files || req.files.length === 0 || !req.body.prompt) {
+        console.error('[/api/run-ollama] Image files and prompt are required.');
+        return res.status(400).send('Image files and prompt are required.');
     }
 
     const { prompt, model } = req.body;
-    const imageBuffer = req.file.buffer;
-    const imageBase64 = imageBuffer.toString('base64');
+    const imagesBase64 = req.files.map(file => file.buffer.toString('base64'));
 
-    console.log(`[/api/run-ollama] Forwarding request to Ollama REST API with model ${model}...`);
+    console.log(`[/api/run-ollama] Forwarding request to Ollama REST API with model ${model} and ${imagesBase64.length} images...`);
 
     try {
         const ollamaResponse = await axios.post('http://localhost:11434/api/generate', {
             model: model || 'qwen3-vl:8b',
             prompt: prompt,
-            images: [imageBase64],
+            images: imagesBase64,
             stream: true, // We want a streaming response
         }, {
             responseType: 'stream'
