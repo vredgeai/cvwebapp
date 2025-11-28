@@ -81,15 +81,29 @@ app.post('/api/run-ollama', upload.array('images'), async (req, res) => {
         ollamaResponse.data.on('error', (err) => {
             console.error('[/api/run-ollama] Error from Ollama stream:', err);
             if (!res.headersSent) {
-                res.status(500).send('Error from Ollama stream');
+                res.status(500).json({ error: 'Stream error', details: err.message });
             }
             res.end();
         });
 
     } catch (error) {
         console.error('[/api/run-ollama] Error calling Ollama API:', error.message);
+
+        let status = 500;
+        let errorMessage = 'Failed to call Ollama API.';
+        let details = error.message;
+
+        if (error.code === 'ECONNREFUSED') {
+            status = 503;
+            errorMessage = 'Ollama Service Unavailable. Is Ollama running?';
+        } else if (error.response && error.response.status === 404) {
+            status = 404;
+            errorMessage = `Model '${model}' not found.`;
+            details = error.response.data;
+        }
+
         if (!res.headersSent) {
-            res.status(500).send('Failed to call Ollama API.');
+            res.status(status).json({ error: errorMessage, details: details });
         }
     }
 });

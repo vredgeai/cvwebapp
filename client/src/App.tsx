@@ -14,6 +14,8 @@ function App() {
     const [endTime, setEndTime] = useState<number | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [debugInfo, setDebugInfo] = useState<string | null>(null);
+    const [showDebug, setShowDebug] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const formatTime = (seconds: number | null): string => {
@@ -190,6 +192,9 @@ function App() {
 
     const handleAnalyzeInterval = async () => {
         setErrorMsg(null);
+        setDebugInfo(null);
+        setShowDebug(false);
+
         if (startTime === null || endTime === null) {
             setErrorMsg('Please set both start and end times.');
             return;
@@ -239,6 +244,11 @@ function App() {
                 body: formData,
             });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(JSON.stringify(errorData));
+            }
+
             if (!response.body) {
                 throw new Error('No response from server');
             }
@@ -278,9 +288,23 @@ function App() {
                 setResult(fullResponse);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error analyzing interval:', error);
-            setResult('Error analyzing interval.');
+            let message = 'Error analyzing interval.';
+            let details = error.message;
+
+            try {
+                const parsedError = JSON.parse(error.message);
+                if (parsedError.error) {
+                    message = parsedError.error;
+                    details = JSON.stringify(parsedError, null, 2);
+                }
+            } catch (e) {
+                // Not JSON, use original message
+            }
+
+            setErrorMsg(message);
+            setDebugInfo(details);
         } finally {
             setIsAnalyzing(false);
         }
@@ -372,6 +396,22 @@ function App() {
                             {errorMsg && (
                                 <div className="alert alert-danger py-1 px-2 mb-3 small">
                                     {errorMsg}
+                                    {debugInfo && (
+                                        <div className="mt-1">
+                                            <button
+                                                className="btn btn-link btn-sm p-0 text-danger"
+                                                onClick={() => setShowDebug(!showDebug)}
+                                                style={{ fontSize: '0.85em' }}
+                                            >
+                                                {showDebug ? 'Hide Debug Details' : 'Show Debug Details'}
+                                            </button>
+                                            {showDebug && (
+                                                <pre className="mt-2 bg-white p-2 border rounded" style={{ fontSize: '0.75em', whiteSpace: 'pre-wrap' }}>
+                                                    {debugInfo}
+                                                </pre>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
