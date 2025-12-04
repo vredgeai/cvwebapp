@@ -313,7 +313,7 @@ function App() {
     return (
         <div className="container-fluid vh-100 d-flex flex-column p-3">
             <div className="text-center mb-3">
-                <h1>CV WebApp</h1>
+                <h1>Ops Narrate v2.0</h1>
             </div>
             <div className="row flex-grow-1 g-3">
                 {/* Left Column: Video */}
